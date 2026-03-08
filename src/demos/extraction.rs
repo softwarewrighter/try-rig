@@ -1,22 +1,31 @@
 use anyhow::Result;
-use rig::completion::Prompt;
 use rig::prelude::*;
 use rig::providers::ollama;
 use rig::client::Nothing;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct ContactInfo {
+    /// The person's full name
+    pub name: Option<String>,
+    /// Email address
+    pub email: Option<String>,
+    /// Phone number
+    pub phone: Option<String>,
+}
 
 pub async fn run(model: &str, text: &str) -> Result<String> {
     let client = ollama::Client::new(Nothing)?;
 
-    let agent = client
-        .agent(model)
+    let extractor = client
+        .extractor::<ContactInfo>(model)
         .preamble(
-            "You are a data extraction assistant. Extract contact information from the text. \
-             Return a JSON object with these fields: \
-             {\"name\": string or null, \"email\": string or null, \"phone\": string or null}. \
-             Only return the JSON, no other text.",
+            "Extract contact information from the provided text. \
+             Pull out the person's name, email address, and phone number if present.",
         )
         .build();
 
-    let response = agent.prompt(text).await?;
-    Ok(response)
+    let contact = extractor.extract(text).await?;
+    Ok(serde_json::to_string_pretty(&contact)?)
 }

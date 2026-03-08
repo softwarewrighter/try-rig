@@ -1,6 +1,6 @@
 # Status
 
-## Current Phase: 7 -- Polish
+## Current Phase: Complete
 
 ## Progress
 
@@ -12,35 +12,28 @@
 | 4 | RAG Demo | Done |
 | 5 | Structured Extraction | Done |
 | 6 | Multi-agent Patterns | Done |
-| 7 | Polish | Not Started |
+| 7 | Polish | Done |
 
 ## Completed
 
 - Project initialized with `cargo init`
-- Documentation created (PRD, architecture, design, plan)
-- Dependencies added to `Cargo.toml` (rig-core 0.32, tokio, clap, etc.)
+- Documentation created (PRD, architecture, design, plan, trials)
+- Dependencies: rig-core 0.32, tokio, clap, schemars, chrono, futures
 - Module structure: `src/tools/`, `src/agents/`, `src/demos/`
-- CLI with subcommands: ask, chat, tools, rag, extract, multi
+- CLI with subcommands: ask, chat, tools, rag, extract, multi, stream, stream-chat
 - Simple agent (ask + interactive chat with history)
-- 3 custom tools: Calculator, WeatherLookup, FileSearch
-- Tool-using agent with all 3 tools
-- RAG agent with in-memory vector store and nomic-embed-text
-- Structured extraction demo (prompt-based JSON extraction)
-- Multi-agent orchestration (calc agent + weather agent + orchestrator)
-- Build verified: `cargo build` succeeds
-
-## Next Steps
-
-1. Test with Ollama running locally
-2. Add `--verbose` flag for tool call logging
-3. Improve error messages for Ollama connection failures
-
-## Blockers
-
-- None
+- 5 custom tools: Calculator, WeatherLookup, FileSearch, DateTime, StringTool
+- Tool-using agent with all 5 tools (+ custom deserializer for string-encoded numbers)
+- RAG agent with in-memory vector store and nomic-embed-text (6 real-world topics, 5/5 retrieval)
+- Typed structured extraction using Rig's Extractor with schemars JsonSchema
+- Multi-agent orchestration with named/described sub-agents (math + weather)
+- Streaming responses (single prompt + interactive chat)
+- Verbose mode (`-v`) for tool call tracing
+- Tested with llama3.2:3b and qwen2.5:7b-instruct (all features working on 7B)
+- Trial results documented across 4 trial rounds in docs/trials.md
 
 ## Notes
 
 - Ollama must be running locally on port 11434
-- Required models: `llama3.2`, `nomic-embed-text`
-- Pull models with: `ollama pull llama3.2 && ollama pull nomic-embed-text`
+- Recommended model: `qwen2.5:7b-instruct` (best tool-calling support)
+- Required for RAG: `nomic-embed-text` embedding model

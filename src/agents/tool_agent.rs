@@ -5,7 +5,9 @@ use rig::providers::ollama;
 use rig::client::Nothing;
 
 use crate::tools::calculator::Calculator;
+use crate::tools::datetime::DateTime;
 use crate::tools::file_search::FileSearch;
+use crate::tools::string_tools::StringTool;
 use crate::tools::weather::WeatherLookup;
 
 pub async fn run(model: &str, question: &str) -> Result<String> {
@@ -17,13 +19,16 @@ pub async fn run(model: &str, question: &str) -> Result<String> {
             "You are a helpful assistant with access to tools. \
              Use the appropriate tool to answer the user's question. \
              Available tools: calculator (math), get_weather (weather info), \
-             search_files (find files). Always use a tool when the question \
-             involves math, weather, or file searching.",
+             search_files (find files), get_datetime (current date/time), \
+             string_tool (text manipulation). Always use a tool when the question \
+             involves math, weather, file searching, date/time, or text operations.",
         )
         .max_tokens(1024)
         .tool(Calculator)
         .tool(WeatherLookup)
         .tool(FileSearch)
+        .tool(DateTime)
+        .tool(StringTool)
         .build();
 
     let response = agent.prompt(question).await?;

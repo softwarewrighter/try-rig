@@ -11,6 +11,10 @@ struct Cli {
     #[arg(short, long, default_value = "llama3.2")]
     model: String,
 
+    /// Enable verbose logging (shows tool calls and debug info)
+    #[arg(short, long)]
+    verbose: bool,
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -24,17 +28,17 @@ enum Commands {
     },
     /// Interactive chat mode
     Chat,
-    /// Ask a question using an agent with tools (calculator, weather, file search)
+    /// Ask a question using an agent with tools
     Tools {
         /// The question to ask
         question: String,
     },
-    /// RAG demo with made-up word definitions
+    /// RAG demo with knowledge base
     Rag {
         /// The question to ask
         question: String,
     },
-    /// Extract structured data from text
+    /// Extract structured contact info from text (typed extractor)
     Extract {
         /// The text to extract data from
         text: String,
@@ -44,18 +48,31 @@ enum Commands {
         /// The question to ask
         question: String,
     },
+    /// Ask with streaming response
+    Stream {
+        /// The question to ask
+        question: String,
+    },
+    /// Interactive chat with streaming responses
+    StreamChat,
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    let cli = Cli::parse();
+
+    let log_level = if cli.verbose {
+        tracing::Level::DEBUG
+    } else {
+        tracing::Level::WARN
+    };
+
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::from_default_env()
-                .add_directive(tracing::Level::WARN.into()),
+                .add_directive(log_level.into()),
         )
         .init();
-
-    let cli = Cli::parse();
 
     match cli.command {
         Commands::Ask { question } => {
@@ -82,6 +99,12 @@ async fn main() -> anyhow::Result<()> {
             println!("Using multi-agent orchestrator...\n");
             let response = agents::multi_agent::run(&cli.model, &question).await?;
             println!("{response}");
+        }
+        Commands::Stream { question } => {
+            demos::streaming::ask(&cli.model, &question).await?;
+        }
+        Commands::StreamChat => {
+            demos::streaming::chat(&cli.model).await?;
         }
     }
 

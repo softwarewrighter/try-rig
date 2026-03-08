@@ -1,12 +1,30 @@
 use rig::completion::ToolDefinition;
 use rig::tool::Tool;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::json;
+
+fn deserialize_f64_from_any<'de, D>(deserializer: D) -> Result<f64, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum NumOrStr {
+        Num(f64),
+        Str(String),
+    }
+    match NumOrStr::deserialize(deserializer)? {
+        NumOrStr::Num(n) => Ok(n),
+        NumOrStr::Str(s) => s.parse().map_err(serde::de::Error::custom),
+    }
+}
 
 #[derive(Deserialize)]
 pub struct CalcArgs {
     pub operation: String,
+    #[serde(deserialize_with = "deserialize_f64_from_any")]
     pub x: f64,
+    #[serde(deserialize_with = "deserialize_f64_from_any")]
     pub y: f64,
 }
 
