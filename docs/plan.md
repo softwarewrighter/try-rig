@@ -1,82 +1,124 @@
 # Implementation Plan
 
-## Phase 1: Foundation
+## Phase 1: Foundation (Done)
 
 - [x] Initialize Rust project
-- [ ] Add dependencies to `Cargo.toml`
-- [ ] Set up module structure (`tools/`, `agents/`, `demos/`)
-- [ ] Verify Ollama connectivity with a basic prompt
+- [x] Add dependencies to `Cargo.toml`
+- [x] Set up module structure (`tools/`, `agents/`, `demos/`)
+- [x] Verify Ollama connectivity with a basic prompt
 
-**Deliverable:** `cargo run` sends a prompt to Ollama and prints the response.
+## Phase 2: CLI & Simple Agent (Done)
 
-## Phase 2: CLI & Simple Agent
+- [x] Add `clap` for CLI argument parsing with subcommands
+- [x] Implement `ask` subcommand (single prompt → response)
+- [x] Implement `chat` subcommand (interactive loop with history)
+- [x] Add tracing/logging setup with `--verbose` flag
 
-- [ ] Add `clap` for CLI argument parsing with subcommands
-- [ ] Implement `ask` subcommand (single prompt → response)
-- [ ] Implement `chat` subcommand (interactive loop with history)
-- [ ] Add tracing/logging setup
+## Phase 3: Custom Tools (Done)
 
-**Deliverable:** `try-rig ask "question"` and `try-rig chat` work end-to-end.
+- [x] Implement `Calculator` tool (add, subtract, multiply, divide)
+- [x] Implement `WeatherLookup` tool (simulated data for 8 cities)
+- [x] Implement `FileSearch` tool (directory walk + glob pattern match)
+- [x] Implement `DateTime` tool (current date/time with timezone)
+- [x] Implement `StringTool` (uppercase, lowercase, reverse, count_words, replace, trim)
+- [x] Create tool-using agent with all 5 tools
+- [x] Add custom deserializer for string-encoded numbers from Ollama
+- [x] Implement `tools` subcommand
 
-## Phase 3: Custom Tools
+## Phase 4: RAG Demo (Done)
 
-- [ ] Implement `Calculator` tool (add, subtract, multiply, divide)
-- [ ] Implement `WeatherLookup` tool (simulated data)
-- [ ] Implement `FileSearch` tool (directory walk + pattern match)
-- [ ] Create tool-using agent with all three tools
-- [ ] Implement `tools` subcommand
-- [ ] Display tool call details (which tool, args, result) in output
+- [x] Define 6-topic knowledge corpus (Rust, photosynthesis, K8s, sourdough, black holes, TCP/IP)
+- [x] Implement embedding pipeline with `nomic-embed-text`
+- [x] Build in-memory vector store with `InMemoryVectorStore`
+- [x] Create RAG-augmented agent with `.dynamic_context(2, index)`
+- [x] Implement `rag` subcommand
 
-**Deliverable:** `try-rig tools "What's 42 * 17?"` shows the agent calling the calculator.
+## Phase 5: Structured Extraction (Done)
 
-## Phase 4: RAG Demo
+- [x] Define `ContactInfo` struct with `schemars::JsonSchema`
+- [x] Create typed extractor using Rig's `Extractor` API
+- [x] Implement `extract` subcommand with pretty-printed JSON output
 
-- [ ] Define sample document corpus (word definitions or FAQ)
-- [ ] Implement embedding pipeline with `nomic-embed-text`
-- [ ] Build in-memory vector store
-- [ ] Create RAG-augmented agent
-- [ ] Implement `rag` subcommand
+## Phase 6: Multi-agent Patterns (Done)
 
-**Deliverable:** `try-rig rag "What does flurbo mean?"` retrieves context and answers.
+- [x] Create specialist agents with `.name()` and `.description()`
+- [x] Implement agent-as-tool composition (calculator agent + weather agent)
+- [x] Create orchestrator agent that routes to specialists
+- [x] Implement `multi` subcommand
 
-## Phase 5: Structured Extraction
+## Phase 7: Polish (Done)
 
-- [ ] Define `ContactInfo` extraction struct with JSON schema
-- [ ] Create extractor using Ollama model
-- [ ] Implement `extract` subcommand
-- [ ] Pretty-print extracted data
+- [x] Add `--model` flag to override the default model
+- [x] Add `--verbose` flag for detailed tool call logging via tracing
+- [x] Add streaming responses (`stream`, `stream-chat` subcommands)
+- [x] Update README, status, and trials documentation
+- [x] Test with llama3.2:3b and qwen2.5:7b-instruct
 
-**Deliverable:** `try-rig extract "..."` extracts structured data from text.
+---
 
-## Phase 6: Multi-agent Patterns
+## Future Phases
 
-- [ ] Create specialist agents (calculator agent, research agent)
-- [ ] Implement agent-as-tool composition
-- [ ] Create orchestrator agent
-- [ ] Implement `multi` subcommand
+### Phase 8: Dynamic Tool Selection
 
-**Deliverable:** `try-rig multi "..."` shows multi-agent delegation.
+- [ ] Implement `ToolEmbedding` trait on existing tools (add `embedding_docs()`, `context()`)
+- [ ] Build a tool index using embeddings
+- [ ] Replace static `.tool()` calls with `.dynamic_tools(n, index, toolset)`
+- [ ] Add a `dynamic-tools` subcommand to demo the difference
+- [ ] Benchmark: compare accuracy with static vs dynamic tool selection
 
-## Phase 7: Polish
+### Phase 9: Streaming with Tools
 
-- [ ] Improve error messages (especially Ollama connection failures)
-- [ ] Add `--model` flag to override the default model
-- [ ] Add `--verbose` flag for detailed tool call logging
-- [ ] Update README with usage examples
-- [ ] Update status doc
+- [ ] Implement streaming tool-call display (show tool events inline)
+- [ ] Handle `StreamedAssistantContent::ToolCall` and `ToolCallDelta` variants
+- [ ] Show progress: "Calling calculator(add, 5, 3)... result: 8"
+- [ ] Add `stream-tools` subcommand
 
-## Dependencies
+### Phase 10: Chat History Persistence
 
-```toml
-[dependencies]
-rig-core = { version = "0.32", features = ["derive"] }
-tokio = { version = "1", features = ["full"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-anyhow = "1"
-thiserror = "2"
-clap = { version = "4", features = ["derive"] }
-tracing = "0.1"
-tracing-subscriber = "0.3"
-glob = "0.3"
-```
+- [ ] Define serializable conversation format (JSON)
+- [ ] Save history to `~/.try-rig/conversations/`
+- [ ] Add `--session <name>` flag to chat/stream-chat commands
+- [ ] List and resume previous sessions
+
+### Phase 11: Pipelines
+
+- [ ] Create a multi-step pipeline: extract → validate → summarize
+- [ ] Use rig's `Op` / `TryOp` traits and `pipeline::new()`
+- [ ] Demo `parallel!` macro for concurrent steps
+- [ ] Add `pipeline` subcommand
+
+### Phase 12: Image/Vision
+
+- [ ] Add image input support (accept file path argument)
+- [ ] Use `llava` or `qwen2.5vl:7b` for image understanding
+- [ ] Implement `vision` subcommand with describe/ocr/qa modes
+- [ ] Handle base64 encoding of image data
+
+### Phase 13: File Loaders
+
+- [ ] Add text file loader for RAG corpus
+- [ ] Add PDF loader (if rig supports it)
+- [ ] Replace hardcoded knowledge entries with file-based ingestion
+- [ ] Add `--docs <directory>` flag to `rag` subcommand
+
+### Phase 14: Real Tools
+
+- [ ] Replace simulated weather with a real API (e.g., Open-Meteo, free, no key)
+- [ ] Add web search tool
+- [ ] Add SQLite query tool
+- [ ] Add `real-tools` subcommand or integrate into existing `tools`
+
+### Phase 15: Error Recovery
+
+- [ ] Detect Ollama not running and print helpful message
+- [ ] Detect model not found and suggest available models
+- [ ] Add retry logic for transient tool call failures
+- [ ] Add `--timeout` flag for slow model responses
+
+### Phase 16: Model Benchmarking
+
+- [ ] Create benchmark harness with fixed test prompts
+- [ ] Test tool calling across model sizes (360M to 14B)
+- [ ] Measure: tool selection accuracy, JSON validity, response quality, latency
+- [ ] Output results as markdown table
+- [ ] Add `bench` subcommand
